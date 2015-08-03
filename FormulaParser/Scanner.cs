@@ -7,6 +7,8 @@ namespace FormulaParser
 {
 
 
+
+
     public class Token
     {
         public int kind;    // token kind
@@ -247,8 +249,8 @@ namespace FormulaParser
     {
         const char EOL = '\n';
         const int eofSym = 0; /* pdt */
-        const int maxT = 5;
-        const int noSym = 5;
+        const int maxT = 6;
+        const int noSym = 6;
 
 
         public Buffer buffer; // scanner buffer
@@ -274,6 +276,7 @@ namespace FormulaParser
             for (int i = 48; i <= 57; ++i) start[i] = 1;
             for (int i = 65; i <= 122; ++i) start[i] = 2;
             start[43] = 3;
+            start[45] = 4;
             start[Buffer.EOF] = -1;
 
         }
@@ -355,7 +358,7 @@ namespace FormulaParser
         {
             switch (t.val)
             {
-                case "_": t.kind = 4; break;
+                case "_": t.kind = 5; break;
                 default: break;
             }
         }
@@ -397,6 +400,8 @@ namespace FormulaParser
                     else { t.kind = 2; t.val = new String(tval, 0, tlen); CheckLiteral(); return t; }
                 case 3:
                     { t.kind = 3; break; }
+                case 4:
+                    { t.kind = 4; break; }
 
             }
             t.val = new String(tval, 0, tlen);
@@ -444,5 +449,5 @@ namespace FormulaParser
         public void ResetPeek() { pt = tokens; }
 
     } // end Scanner
-    
+
 }

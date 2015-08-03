@@ -7,13 +7,12 @@ using System;
 namespace FormulaParser
 {
 
-
     public class Parser
     {
         public const int _EOF = 0;
         public const int _number = 1;
         public const int _identifier = 2;
-        public const int maxT = 5;
+        public const int maxT = 6;
 
         const bool _T = true;
         const bool _x = false;
@@ -103,7 +102,7 @@ namespace FormulaParser
         void Formula()
         {
             Expression e;
-            while (la.kind == 1 || la.kind == 3 || la.kind == 4)
+            while (StartOf(1))
             {
                 Expr(out e);
                 this.Output = e;
@@ -114,11 +113,19 @@ namespace FormulaParser
         {
             Expression e1;
             Term(out e);
-            while (la.kind == 3)
+            while (la.kind == 3 || la.kind == 4)
             {
                 Func<Expression, Expression, Expression> op = null;
-                Get();
-                op = ExpressionsHelper.Add;
+                if (la.kind == 3)
+                {
+                    Get();
+                    op = ExpressionsHelper.Add;
+                }
+                else
+                {
+                    Get();
+                    op = ExpressionsHelper.Subtract;
+                }
                 Term(out e1);
                 e = op(e, e1);
             }
@@ -127,7 +134,7 @@ namespace FormulaParser
         void Term(out Expression e)
         {
             e = null;
-            while (la.kind == 1 || la.kind == 4)
+            while (la.kind == 1 || la.kind == 5)
             {
                 if (la.kind == 1)
                 {
@@ -155,7 +162,8 @@ namespace FormulaParser
         }
 
         static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_x,_T, _T,_T,_x,_x}
 
 	};
     } // end Parser
@@ -176,8 +184,9 @@ namespace FormulaParser
                 case 1: s = "number expected"; break;
                 case 2: s = "identifier expected"; break;
                 case 3: s = "\"+\" expected"; break;
-                case 4: s = "\"_\" expected"; break;
-                case 5: s = "??? expected"; break;
+                case 4: s = "\"-\" expected"; break;
+                case 5: s = "\"_\" expected"; break;
+                case 6: s = "??? expected"; break;
 
                 default: s = "error " + n; break;
             }
@@ -213,5 +222,5 @@ namespace FormulaParser
     {
         public FatalError(string m) : base(m) { }
     }
-    
+
 }

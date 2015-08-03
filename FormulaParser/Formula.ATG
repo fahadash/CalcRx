@@ -22,11 +22,17 @@ Formula									(. Expression e; .)
 		= Term<out e>
 			{ 							(. Func<Expression, Expression, Expression> op = null; .)
 			   
+			   (
 			   '+' 						(. op = ExpressionsHelper.Add; .)		   
-				Term<out e1>	(. e = op(e, e1); .)
+			   |
+			   '-'						(. op = ExpressionsHelper.Subtract; .)
+			   )
+				Term<out e1>			(. e = op(e, e1); .)
+				
 			}.
 		
-	Term<out Expression e> = 
+	Term<out Expression e>				(. e = null; .)
+	= 
 	{
 	number	(. e = Expression.Constant(Convert.ToDouble(t.val)); .)
 	|

@@ -13,6 +13,15 @@ namespace FormulaParser
     {
         internal static Expression Add(Expression a, Expression b)
         {
+            return ArithmeticOperation(a, b, Expression.Add);
+        }
+
+        internal static Expression Subtract(Expression a, Expression b)
+        {
+            return ArithmeticOperation(a, b, Expression.Subtract);
+        }
+        internal static Expression ArithmeticOperation(Expression a, Expression b, Func<Expression, Expression, Expression> operation)
+        {
             if (a.IsNumericObservableType() && b.IsNumericObservableType())
             {
                 var genA = a.Type.GetFirstObservableGenericType();
@@ -28,7 +37,7 @@ namespace FormulaParser
 
 
                 return Expression.Call(methodInfo,
-                        a, b, Expression.Lambda(Expression.Add(paramA, paramB), paramA, paramB));
+                        a, b, Expression.Lambda(operation(paramA, paramB), paramA, paramB));
             }
             if (a.IsNumericObservableType() && b.IsNumericType())
             {
@@ -56,7 +65,7 @@ namespace FormulaParser
                 }
 
                 return Expression.Call(methodInfo,
-                        a, Expression.Lambda(Expression.Add(valueA, b), paramA));
+                        a, Expression.Lambda(operation(valueA, b), paramA));
             }
             if (a.IsNumericType() && b.IsNumericObservableType())
             {
@@ -83,11 +92,11 @@ namespace FormulaParser
                 }
 
                 return Expression.Call(methodInfo,
-                        b, Expression.Lambda(Expression.Add(valueB, a), paramB));
+                        b, Expression.Lambda(operation(valueB, a), paramB));
             }
             else if (a.IsNumericType() && b.IsNumericType())
             {
-                return Expression.Add(a, b);
+                return operation(a, b);
             }
 
             return null;
