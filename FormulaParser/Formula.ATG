@@ -1,0 +1,35 @@
+﻿using System.Linq.Expressions;
+
+COMPILER Formula
+public Expression Output { get; set; }
+public Expression BaseExpression { get; set; }
+
+CHARACTERS
+	digit = '0'..'9'.
+	letter = 'A'..'z'.
+TOKENS
+	number = digit {digit}.
+	identifier = letter {letter|digit}.
+IGNORE '\r' + '\n'
+
+PRODUCTIONS
+Formula									(. Expression e; .)
+	= {
+	Expr<out e>							(. this.Output = e; .)
+	}.
+		
+	Expr<out Expression e>				(. Expression e1; .)
+		= Term<out e>
+			{ 							(. Func<Expression, Expression, Expression> op = null; .)
+			   
+			   '+' 						(. op = ExpressionsHelper.Add; .)		   
+				Term<out e1>	(. e = op(e, e1); .)
+			}.
+		
+	Term<out Expression e> = 
+	{
+	number	(. e = Expression.Constant(Convert.ToDouble(t.val)); .)
+	|
+	'_'		(. e = BaseExpression; .)
+	}.
+END Formula.
