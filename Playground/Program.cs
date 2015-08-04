@@ -14,7 +14,7 @@ namespace Playground
         static void Main(string[] args)
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
-            var expression = new ExpressionParser().BuildExpression("5 + _ - 1", baseExpr);
+            var expression = new ExpressionParser().BuildExpression("100-_*3", baseExpr);
 
             var lambda = Expression.Lambda(expression, baseExpr);
 

@@ -20,6 +20,27 @@ namespace FormulaParser
         {
             return ArithmeticOperation(a, b, Expression.Subtract);
         }
+
+
+        internal static Expression Multiply(Expression a, Expression b)
+        {
+            return ArithmeticOperation(a, b, Expression.Multiply);
+        }
+
+        internal static Expression Divide(Expression a, Expression b)
+        {
+            return ArithmeticOperation(a, b, Expression.Divide);
+        }
+
+        internal static Expression Mod(Expression a, Expression b)
+        {
+            return ArithmeticOperation(a, b, Expression.Modulo);
+        }
+
+        internal static Expression Exponent(Expression a, Expression b)
+        {
+            return ArithmeticOperation(a, b, Expression.Power);
+        }
         internal static Expression ArithmeticOperation(Expression a, Expression b, Func<Expression, Expression, Expression> operation)
         {
             if (a.IsNumericObservableType() && b.IsNumericObservableType())
@@ -92,7 +113,7 @@ namespace FormulaParser
                 }
 
                 return Expression.Call(methodInfo,
-                        b, Expression.Lambda(operation(valueB, a), paramB));
+                        b, Expression.Lambda(operation(a, valueB), paramB));
             }
             else if (a.IsNumericType() && b.IsNumericType())
             {
