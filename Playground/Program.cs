@@ -14,13 +14,13 @@ namespace Playground
         static void Main(string[] args)
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
-            var expression = new ExpressionParser().BuildExpression("100-_*3", baseExpr);
+            var expression = new ExpressionParser().BuildExpression("(_-32)*5/9", baseExpr);
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
             Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>) lambda.Compile();
 
-            var ob = func(Observable.Range(0, 10));
+            var ob = func(Observable.Range(70, 100));
 
             ob.Subscribe(Console.WriteLine);
 

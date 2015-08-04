@@ -12,7 +12,7 @@ CHARACTERS
 TOKENS
 	number = digit {digit}.
 	identifier = letter {letter|digit}.
-	self = "self".
+	self = "_".
 IGNORE '\r' + '\n'
 
 PRODUCTIONS
@@ -43,6 +43,12 @@ PRODUCTIONS
 	= number										(. e = Expression.Constant(Convert.ToDouble(t.val)); .)
 	| 
 	self											(. e = BaseExpression; .)
+	|
+	'('												(. int sign = 1; .)
+	['-'											(. sign = -1; .)
+	] 
+	Formula 										(. e = ExpressionsHelper.SignMultiply(this.Output, sign); .)
+	')'
 	.
 	
 END Formula.

@@ -15,7 +15,7 @@ public class Parser {
 	public const int _number = 1;
 	public const int _identifier = 2;
 	public const int _self = 3;
-	public const int maxT = 10;
+	public const int maxT = 12;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -140,7 +140,17 @@ public Expression BaseExpression { get; set; }
 		} else if (la.kind == 3) {
 			Get();
 			e = BaseExpression; 
-		} else SynErr(11);
+		} else if (la.kind == 10) {
+			Get();
+			int sign = 1; 
+			if (la.kind == 5) {
+				Get();
+				sign = -1; 
+			}
+			Formula();
+			e = ExpressionsHelper.SignMultiply(this.Output, sign); 
+			Expect(11);
+		} else SynErr(13);
 	}
 
 
@@ -155,8 +165,8 @@ public Expression BaseExpression { get; set; }
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
-		{_x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
+		{_x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x}
 
 	};
 } // end Parser
@@ -180,8 +190,10 @@ public class Errors {
 			case 7: s = "\"/\" expected"; break;
 			case 8: s = "\"%\" expected"; break;
 			case 9: s = "\"^\" expected"; break;
-			case 10: s = "??? expected"; break;
-			case 11: s = "invalid Factor"; break;
+			case 10: s = "\"(\" expected"; break;
+			case 11: s = "\")\" expected"; break;
+			case 12: s = "??? expected"; break;
+			case 13: s = "invalid Factor"; break;
 
 			default: s = "error " + n; break;
 		}

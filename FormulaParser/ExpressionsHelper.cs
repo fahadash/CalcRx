@@ -11,6 +11,15 @@ namespace FormulaParser
 {
     internal class ExpressionsHelper
     {
+        internal static Expression SignMultiply(Expression exp, int sign)
+        {
+            if (sign == 1)
+            {
+                return exp;
+            }
+
+            return ArithmeticOperation(exp, Expression.Constant(sign), Expression.Multiply);
+        }
         internal static Expression Add(Expression a, Expression b)
         {
             return ArithmeticOperation(a, b, Expression.Add);
