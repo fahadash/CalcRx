@@ -4,16 +4,17 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
+using Test.Contracts;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Test
 {
-    public class SimpleArithmetic : IClassFixture<ExpressionParser>
+    public class ExpressionParserTests : IClassFixture<ExpressionParser>
     {
         ExpressionParser parser;
         private readonly ITestOutputHelper output;
-        public SimpleArithmetic(ExpressionParser parser, ITestOutputHelper output)
+        public ExpressionParserTests(ExpressionParser parser, ITestOutputHelper output)
         {
             this.parser = parser;
             this.output = output;
@@ -29,7 +30,7 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
@@ -47,7 +48,7 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
@@ -65,7 +66,7 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
@@ -83,7 +84,7 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
@@ -101,7 +102,7 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
@@ -119,11 +120,31 @@ namespace Test
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            Func<IObservable<int>, IObservable<double>> func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 
             result.Subscribe(t => output.WriteLine(string.Format("TestComplicated() - {0}", t)));
+        }
+
+        
+        [Fact]
+        public void TestPropertyAccess()
+        {
+            var baseExpr = Expression.Parameter(typeof(IObservable<Tick>));
+
+            var observable = Observable.Range(0, 10)
+                .Select(t => new Tick() { Time = DateTime.Now, Price = t, Symbol = "AAPL" });
+
+            var expression = parser.BuildExpression("Price * 2", baseExpr);
+
+            var lambda = Expression.Lambda(expression, baseExpr);
+
+            var func = (Func<IObservable<Tick>, IObservable<double>>)lambda.Compile();
+
+            var result = func(observable);
+
+            result.Subscribe(t => output.WriteLine(string.Format("{0}", t)));
         }
     }
 }

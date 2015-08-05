@@ -23,10 +23,25 @@ namespace FormulaParser
                 return true;
             }
 
-            var observableInterfaces = exp.Type.GetInterfaces();
+            var observableInterfaces = type.GetInterfaces();
 
             return observableInterfaces
                         .Any(i => i.Name == "IObservable`1" && i.GenericTypeArguments.Length == 1 && i.GenericTypeArguments.First().IsNumericType());
+        }
+        internal static bool IsObservableType(this Expression exp)
+        {
+            var type = exp.Type;
+
+            if (type.IsInterface && type.Name == "IObservable`1")
+            {
+                return true;
+            }
+
+            var observableInterfaces = type.GetInterfaces();
+
+            return observableInterfaces
+                        .Any(i => i.Name == "IObservable`1" && i.GenericTypeArguments.Length == 1);
+
         }
 
         internal static bool IsNumericType(this Type type)
@@ -39,11 +54,9 @@ namespace FormulaParser
             if (type.IsInterface && type.Name == "IObservable`1")
             {
                 var genericType = type.GenericTypeArguments.First();
-                
-                if (genericType.IsNumericType())
-                {
-                    return genericType;
-                }
+
+                return genericType;
+              
             }
 
             return type.GetInterfaces()

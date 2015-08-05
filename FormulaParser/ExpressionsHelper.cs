@@ -11,6 +11,36 @@ namespace FormulaParser
 {
     internal class ExpressionsHelper
     {
+        internal static Expression PropertyAccess(Expression exp, string name)
+        {
+            //TODO: Write code to see if type has that property
+
+            if (exp.IsObservableType())
+            {
+                var gen = exp.Type.GetFirstObservableGenericType();
+                var param = Expression.Parameter(gen);
+
+                var property = gen.GetProperties()
+                                    .Where(p => p.Name.Equals(name))
+                                    .FirstOrDefault();
+
+                if (property == null)
+                {
+                    // throw custom exception here
+                }
+
+                var resultType = property.PropertyType;
+
+                var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                 .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
+                 .MakeGenericMethod(gen, resultType);
+
+                return Expression.Call(methodInfo,
+                     exp, Expression.Lambda(Expression.Property(param, property), param));
+            }
+
+            return Expression.Property(exp, name);
+        }
         internal static Expression SignMultiply(Expression exp, int sign)
         {
             if (sign == 1)

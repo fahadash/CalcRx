@@ -140,6 +140,9 @@ public Expression BaseExpression { get; set; }
 		} else if (la.kind == 3) {
 			Get();
 			e = BaseExpression; 
+		} else if (la.kind == 2) {
+			Get();
+			e = ExpressionsHelper.PropertyAccess(BaseExpression, t.val); 
 		} else if (la.kind == 10) {
 			Get();
 			int sign = 1; 

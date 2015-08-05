@@ -44,6 +44,8 @@ PRODUCTIONS
 	| 
 	self											(. e = BaseExpression; .)
 	|
+	identifier										(. e = ExpressionsHelper.PropertyAccess(BaseExpression, t.val); .)
+	|
 	'('												(. int sign = 1; .)
 	['-'											(. sign = -1; .)
 	] 
