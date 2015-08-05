@@ -14,7 +14,7 @@ namespace Playground
         static void Main(string[] args)
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
-            var expression = new ExpressionParser().BuildExpression("(_-32)*5/9", baseExpr);
+            var expression = new ExpressionParser().BuildExpression("-(_-32)*5/9", baseExpr);
 
             var lambda = Expression.Lambda(expression, baseExpr);
 

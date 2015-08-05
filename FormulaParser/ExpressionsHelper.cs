@@ -27,6 +27,11 @@ namespace FormulaParser
 
         internal static Expression Subtract(Expression a, Expression b)
         {
+            if (a == null)
+            {
+                return ArithmeticOperation(b, Expression.Constant(-1), Expression.Multiply);
+            }
+
             return ArithmeticOperation(a, b, Expression.Subtract);
         }
 

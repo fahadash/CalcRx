@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FormulaParser
 {
-    public class ExpressionParser
+    public class ExpressionParser : IDisposable
     {
         public Expression BuildExpression(string input, Expression baseExpression)
         {
@@ -19,6 +19,10 @@ namespace FormulaParser
             parser.BaseExpression = baseExpression;
             parser.Parse();
             return parser.Output;
+        }
+
+        public void Dispose()
+        {
         }
     }
 }
