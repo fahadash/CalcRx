@@ -15,7 +15,7 @@ You have have a text field in your user interface that allows them to type expre
 And you want to apply that expression to an existing observable, you can do this.
 
 ```csharp
-IObservable<double> celciusTemperature = CalcRx.Evalutate<double>("( _ - 32 ) * 5/9", temperature);
+IObservable<double> celciusTemperature = CalcRx.Evaluate<double>("( _ - 32 ) * 5/9", temperature);
 ```
 
 Now suppose you have a observable that gives you back the Stock Trades
