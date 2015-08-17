@@ -127,7 +127,7 @@ namespace Test
             result.Subscribe(t => output.WriteLine(string.Format("TestComplicated() - {0}", t)));
         }
 
-        
+
         [Fact]
         public void TestPropertyAccess()
         {
@@ -141,6 +141,24 @@ namespace Test
             var lambda = Expression.Lambda(expression, baseExpr);
 
             var func = (Func<IObservable<Tick>, IObservable<double>>)lambda.Compile();
+
+            var result = func(observable);
+
+            result.Subscribe(t => output.WriteLine(string.Format("{0}", t)));
+        }
+
+        [Fact]
+        public void TestFunctionCall()
+        {
+            var baseExpr = Expression.Parameter(typeof(IObservable<int>));
+
+            var observable = Observable.Range(70, 10);
+
+            var expression = parser.BuildExpression("AVG(_)", baseExpr);
+
+            var lambda = Expression.Lambda(expression, baseExpr);
+
+            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
 
             var result = func(observable);
 

@@ -11,6 +11,11 @@ namespace FormulaParser
 {
     internal class ExpressionsHelper
     {
+        internal static Expression FunctionCall(string functionName, IEnumerable<Expression> args)
+        {
+            return Expression.Constant(3);
+        }
+
         internal static Expression PropertyAccess(Expression exp, string name)
         {
             //TODO: Write code to see if type has that property
