@@ -60,6 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Formula.ATG" />
+    <None Include="FormulaNoSA.ATG" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
