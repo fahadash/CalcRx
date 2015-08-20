@@ -1,5 +1,6 @@
 ﻿using FormulaParser;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -150,15 +151,21 @@ namespace Test
         [Fact]
         public void TestFunctionCall()
         {
+            var sum = new Func<IObservable<int>, IObservable<int>>(o => o.Scan(0, (p, n) => n + p));
+
+            var list = new List<KeyValuePair<string, object>>();
+            list.Add(new KeyValuePair<string, object>("SUM", sum));
+            var parser = new ExpressionParser(list);
+
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
 
             var observable = Observable.Range(70, 10);
 
-            var expression = parser.BuildExpression("AVG(_)", baseExpr);
+            var expression = parser.BuildExpression("SUM(_)", baseExpr);
 
             var lambda = Expression.Lambda(expression, baseExpr);
 
-            var func = (Func<IObservable<int>, IObservable<double>>)lambda.Compile();
+            var func = (Func<IObservable<int>, IObservable<int>>)lambda.Compile();
 
             var result = func(observable);
 

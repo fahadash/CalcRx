@@ -11,9 +11,22 @@ namespace FormulaParser
 {
     internal class ExpressionsHelper
     {
+        internal static List<Function> functions;
+
         internal static Expression FunctionCall(string functionName, IEnumerable<Expression> args)
         {
-            return Expression.Constant(3);
+            var argList = args.ToList();
+            var name = string.Format("{0}({1})", functionName, argList.Count);
+
+            var function = functions.Where(f => f.FunctionName.Equals(name)).First();
+
+
+            var method = function.FunctionExpression.Type.GetMethod("Invoke");
+            var exp = Expression.Call(function.FunctionExpression, method, args);
+
+            //var exp = Expression.Lambda(function.FunctionExpression, args.OfType<ParameterExpression>());
+
+            return exp;
         }
 
         internal static Expression PropertyAccess(Expression exp, string name)
