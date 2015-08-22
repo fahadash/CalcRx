@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reactive.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using FormulaParser.Helpers;
 
 namespace FormulaParser
 {
@@ -20,21 +21,20 @@ namespace FormulaParser
         {
 
         }
-        public ExpressionParser(IList<KeyValuePair<string, object>> functions)
+        public ExpressionParser(IList<Contracts.Function> functions)
         {
-            if (functions != null)
-            {
-                var function = functions.First();
-                var type = function.Value.GetType();
-
-                if (type.IsFunction())
+            this.functions = 
+            functions
+                .EmptyIfNull()
+                .Where(f => f.Value.GetType().IsFunction())
+                .Select(function => 
                 {
                     var func = new Function();
-
+                    var type = function.Value.GetType();
                     var numParameters = type.GetNumberOfGenericArguments()  - 1;
                     var functionExpression = Expression.Constant(function.Value);
                     func.FunctionName = string.Format("{0}({1})",
-                        function.Key,
+                        function.Name,
                         numParameters.ToString());
 
                     func.Parameters = type.GetGenericArguments()
@@ -44,12 +44,14 @@ namespace FormulaParser
                                             .ToList();
                     func.FunctionExpression = functionExpression;
 
-                    this.functions.Add(func);
-                }
+                    return func;
+                })
+                .ToList();
+
 
                 ExpressionsHelper.functions = this.functions;
             }
-        }
+        
 
         public Expression BuildExpression(string input, Expression baseExpression)
         {

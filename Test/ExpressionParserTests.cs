@@ -1,4 +1,5 @@
 ﻿using FormulaParser;
+using FormulaParser.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -153,8 +154,8 @@ namespace Test
         {
             var sum = new Func<IObservable<int>, IObservable<int>>(o => o.Scan(0, (p, n) => n + p));
 
-            var list = new List<KeyValuePair<string, object>>();
-            list.Add(new KeyValuePair<string, object>("SUM", sum));
+            var list = new List<Function>();
+            list.Add(new Function("SUM", sum));
             var parser = new ExpressionParser(list);
 
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
