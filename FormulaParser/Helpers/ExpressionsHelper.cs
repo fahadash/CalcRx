@@ -7,7 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FormulaParser
+namespace FormulaParser.Helpers
 {
     internal class ExpressionsHelper
     {

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FormulaParser.Helpers
 {
-    public static class EnumerableExt
+    internal static class EnumerableExt
     {
         public static IEnumerable<TElement> EmptyIfNull<TElement>(this IEnumerable<TElement> source)
         {
