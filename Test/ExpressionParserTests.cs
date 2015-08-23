@@ -23,6 +23,7 @@ namespace Test
         }
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestAdd()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -41,6 +42,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestSubtract()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -59,6 +61,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestMultiply()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -77,6 +80,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestDivide()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -95,6 +99,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestPower()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -113,6 +118,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestComplicated()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<int>));
@@ -131,6 +137,7 @@ namespace Test
 
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestPropertyAccess()
         {
             var baseExpr = Expression.Parameter(typeof(IObservable<Tick>));
@@ -150,6 +157,7 @@ namespace Test
         }
 
         [Fact]
+        [Trait("Category", "Parsing Simple")]
         public void TestFunctionCall()
         {
             var sum = new Func<IObservable<int>, IObservable<int>>(o => o.Scan(0, (p, n) => n + p));
