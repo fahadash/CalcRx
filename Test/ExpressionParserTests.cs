@@ -1,5 +1,7 @@
 ﻿using FormulaParser;
+using FormulaParser.Contracts;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
@@ -127,7 +129,7 @@ namespace Test
             result.Subscribe(t => output.WriteLine(string.Format("TestComplicated() - {0}", t)));
         }
 
-        
+
         [Fact]
         public void TestPropertyAccess()
         {
@@ -141,6 +143,30 @@ namespace Test
             var lambda = Expression.Lambda(expression, baseExpr);
 
             var func = (Func<IObservable<Tick>, IObservable<double>>)lambda.Compile();
+
+            var result = func(observable);
+
+            result.Subscribe(t => output.WriteLine(string.Format("{0}", t)));
+        }
+
+        [Fact]
+        public void TestFunctionCall()
+        {
+            var sum = new Func<IObservable<int>, IObservable<int>>(o => o.Scan(0, (p, n) => n + p));
+
+            var list = new List<Function>();
+            list.Add(new Function("SUM", sum));
+            var parser = new ExpressionParser(list);
+
+            var baseExpr = Expression.Parameter(typeof(IObservable<int>));
+
+            var observable = Observable.Range(70, 10);
+
+            var expression = parser.BuildExpression("SUM(_)", baseExpr);
+
+            var lambda = Expression.Lambda(expression, baseExpr);
+
+            var func = (Func<IObservable<int>, IObservable<int>>)lambda.Compile();
 
             var result = func(observable);
 

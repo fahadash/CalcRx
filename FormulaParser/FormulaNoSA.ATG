@@ -1,0 +1,21 @@
+COMPILER Formula
+
+CHARACTERS
+	digit = '0'..'9'.
+	letter = 'A'..'Z' + 'a'..'z'.
+TOKENS
+	number = digit {digit}.
+	identifier = letter {letter|digit}.
+	self = "_".
+IGNORE '\r' + '\n'
+
+PRODUCTIONS
+	Formula	= Term {( '+' | '-' ) Term}.	
+	Term = Factor {( '*' | "/" | '%' | '^' ) Factor	}.		
+	Factor = Numeric | self | FunctionOrProperty | '(' ['-'] Formula ')'.	
+	FunctionOrProperty = Name  ["(" Arg {"," Arg } ")"].
+	Name = identifier.	
+	Arg = Factor | String.	
+	String = "\"" ANY "\"".	
+	Numeric = number.	
+END Formula.

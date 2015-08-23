@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.Linq.Expressions;
+using FormulaParser.Helpers;
 
 //$namespace=FormulaParser
 
@@ -15,7 +17,7 @@ public class Parser {
 	public const int _number = 1;
 	public const int _identifier = 2;
 	public const int _self = 3;
-	public const int maxT = 12;
+	public const int maxT = 14;
 
 	const bool _T = true;
 	const bool _x = false;
@@ -135,14 +137,12 @@ public Expression BaseExpression { get; set; }
 	void Factor(out Expression e) {
 		e = null; 
 		if (la.kind == 1) {
-			Get();
-			e = Expression.Constant(Convert.ToDouble(t.val)); 
+			Numeric(out e);
 		} else if (la.kind == 3) {
 			Get();
 			e = BaseExpression; 
 		} else if (la.kind == 2) {
-			Get();
-			e = ExpressionsHelper.PropertyAccess(BaseExpression, t.val); 
+			FunctionOrProperty(out e);
 		} else if (la.kind == 10) {
 			Get();
 			int sign = 1; 
@@ -153,7 +153,51 @@ public Expression BaseExpression { get; set; }
 			Formula();
 			e = ExpressionsHelper.SignMultiply(this.Output, sign); 
 			Expect(11);
-		} else SynErr(13);
+		} else SynErr(15);
+	}
+
+	void Numeric(out Expression e) {
+		Expect(1);
+		e = Expression.Constant(Convert.ToDouble(t.val)); 
+	}
+
+	void FunctionOrProperty(out Expression e) {
+		bool propertyAccess = true; string functionName; List<Expression> args = null; Expression temp = null; 
+		Name(out functionName);
+		if (la.kind == 10) {
+			Get();
+			propertyAccess = false; 
+			Arg(out temp);
+			args = new List<Expression>(); args.Add(temp); 
+			while (la.kind == 12) {
+				Get();
+				Arg(out temp);
+				args.Add(temp); 
+			}
+			Expect(11);
+		}
+		if (propertyAccess) e = ExpressionsHelper.PropertyAccess(BaseExpression, functionName); else e = ExpressionsHelper.FunctionCall(functionName, args); 
+	}
+
+	void Name(out string name) {
+		Expect(2);
+		name = t.val; 
+	}
+
+	void Arg(out Expression e) {
+		e = null; 
+		if (StartOf(2)) {
+			Factor(out e);
+		} else if (la.kind == 13) {
+			String(out e);
+		} else SynErr(16);
+	}
+
+	void String(out Expression e) {
+		Expect(13);
+		Get();
+		Expect(13);
+		e = Expression.Constant(t.val); 
 	}
 
 
@@ -168,8 +212,9 @@ public Expression BaseExpression { get; set; }
 	}
 	
 	static readonly bool[,] set = {
-		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x},
-		{_x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x}
+		{_T,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x, _x,_x,_x,_x},
+		{_x,_x,_x,_x, _x,_x,_T,_T, _T,_T,_x,_x, _x,_x,_x,_x},
+		{_x,_T,_T,_T, _x,_x,_x,_x, _x,_x,_T,_x, _x,_x,_x,_x}
 
 	};
 } // end Parser
@@ -195,8 +240,11 @@ public class Errors {
 			case 9: s = "\"^\" expected"; break;
 			case 10: s = "\"(\" expected"; break;
 			case 11: s = "\")\" expected"; break;
-			case 12: s = "??? expected"; break;
-			case 13: s = "invalid Factor"; break;
+			case 12: s = "\",\" expected"; break;
+			case 13: s = "\"\\\"\" expected"; break;
+			case 14: s = "??? expected"; break;
+			case 15: s = "invalid Factor"; break;
+			case 16: s = "invalid Arg"; break;
 
 			default: s = "error " + n; break;
 		}

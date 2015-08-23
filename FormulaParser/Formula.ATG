@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Generic;
+using System.Linq.Expressions;
+using FormulaParser.Helpers;
 
 $namespace=FormulaParser
 
@@ -38,13 +40,14 @@ PRODUCTIONS
 	) 
 	Factor<out e1>									(. e = op(e, e1); .)
 	}.
-	
+		
 	Factor<out Expression e>						(. e = null; .)
-	= number										(. e = Expression.Constant(Convert.ToDouble(t.val)); .)
+	=
+	Numeric<out e>
 	| 
 	self											(. e = BaseExpression; .)
-	|
-	identifier										(. e = ExpressionsHelper.PropertyAccess(BaseExpression, t.val); .)
+	|	
+	FunctionOrProperty<out e>
 	|
 	'('												(. int sign = 1; .)
 	['-'											(. sign = -1; .)
@@ -52,5 +55,25 @@ PRODUCTIONS
 	Formula 										(. e = ExpressionsHelper.SignMultiply(this.Output, sign); .)
 	')'
 	.
+	
+	
+	FunctionOrProperty<out Expression e>			(. bool propertyAccess = true; string functionName; List<Expression> args = null; Expression temp = null; .)
+	= Name<out functionName>
+	[
+	"(" 											(. propertyAccess = false; .)
+	Arg<out temp>									(. args = new List<Expression>(); args.Add(temp); .)
+	{","
+	Arg<out temp>									(. args.Add(temp); .)
+	} 												
+	")"]											(. if (propertyAccess) e = ExpressionsHelper.PropertyAccess(BaseExpression, functionName); else e = ExpressionsHelper.FunctionCall(functionName, args); .).
+	
+	Name<out string name> = identifier				(. name = t.val; .).
+	
+	Arg<out Expression e>							(. e = null; .)
+	= Factor<out e> | String<out e>.
+	
+	String<out Expression e> = "\"" ANY "\""		(. e = Expression.Constant(t.val); .).
+	
+	Numeric<out Expression e> =	number				(. e = Expression.Constant(Convert.ToDouble(t.val)); .).
 	
 END Formula.

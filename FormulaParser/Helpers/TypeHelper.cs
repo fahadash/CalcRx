@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FormulaParser
+namespace FormulaParser.Helpers
 {
     internal static class TypeHelper
     {
@@ -84,6 +84,21 @@ namespace FormulaParser
                 return i;
             }
             throw new ArgumentException("Unsupported types specified for precision checking");
+        }
+
+        internal static bool IsFunction(this Type type)
+        {
+            return type.IsGenericType && type.Name.StartsWith("Func`");
+        }
+
+        internal static int GetNumberOfGenericArguments(this Type type)
+        {
+            if (type.IsGenericType == false)
+            {
+                throw new ArgumentException("Type is not generic type");
+            }
+
+            return type.GetGenericArguments().Count();
         }
     }
 }

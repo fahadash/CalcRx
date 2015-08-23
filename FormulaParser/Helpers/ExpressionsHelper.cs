@@ -7,10 +7,28 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FormulaParser
+namespace FormulaParser.Helpers
 {
     internal class ExpressionsHelper
     {
+        internal static List<Function> functions;
+
+        internal static Expression FunctionCall(string functionName, IEnumerable<Expression> args)
+        {
+            var argList = args.ToList();
+            var name = string.Format("{0}({1})", functionName, argList.Count);
+
+            var function = functions.Where(f => f.FunctionName.Equals(name)).First();
+
+
+            var method = function.FunctionExpression.Type.GetMethod("Invoke");
+            var exp = Expression.Call(function.FunctionExpression, method, args);
+
+            //var exp = Expression.Lambda(function.FunctionExpression, args.OfType<ParameterExpression>());
+
+            return exp;
+        }
+
         internal static Expression PropertyAccess(Expression exp, string name)
         {
             //TODO: Write code to see if type has that property
@@ -161,6 +179,16 @@ namespace FormulaParser
             }
             else if (a.IsNumericType() && b.IsNumericType())
             {
+                var resultType = TypeHelper.GetHigherPrecisionType(a.Type, b.Type);
+                if (a.Type != resultType)
+                {
+                    a = Expression.Convert(a, resultType);
+                }
+                if (b.Type != resultType)
+                {
+                    b = Expression.Convert(b, resultType);
+                }
+
                 return operation(a, b);
             }
 
