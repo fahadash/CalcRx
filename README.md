@@ -11,10 +11,9 @@ You have have a text field in your user interface that allows them to type expre
 ``` 
  ( _ - 32 ) * 5/9
 ```
+*Underscore _ references the object yielded by input observable.*
 
-Underscore _ references the object yielded by input observable.
-
-And you want to apply that expression to an existing observable, you can do this.
+You want to apply the above expression to an existing observable, you can do this.
 
 ```csharp
 IObservable<double> temperatureInCelcius = temperatureInFahrenheit.Evalutate<double, double>("( _ - 32 ) * 5/9");
@@ -34,7 +33,7 @@ CalcRx can access properties of objects yielded by observables. So you could do
 IObservable<double> profits = myTrades.Evaluate<Trade, double>("SellPrice - BuyPrice");
 ```
 
-Now, you want to have more fun and introduction functions
+Now, you want to have more fun and introduce functions
 
 ```csharp
 IObservable<int> numbers = Observable.Range(0, 10);
