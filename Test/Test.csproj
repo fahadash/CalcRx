@@ -77,6 +77,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="CalcRxTest.cs" />
     <Compile Include="Contracts\Tick.cs" />
     <Compile Include="ExpressionParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -85,6 +86,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CalcRx\CalcRx.csproj">
+      <Project>{669ed95c-cc04-4e70-b4f5-8e79b7bb6e1d}</Project>
+      <Name>CalcRx</Name>
+    </ProjectReference>
     <ProjectReference Include="..\FormulaParser\FormulaParser.csproj">
       <Project>{db7ce159-ecfe-456c-a71f-69783bbd7182}</Project>
       <Name>FormulaParser</Name>

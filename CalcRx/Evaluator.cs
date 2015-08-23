@@ -11,14 +11,14 @@ namespace CalcRx
 {
     public static class Evaluator
     {
-        public static Func<IObservable<TInput>, IObservable<TOutput>> Evaluate<TInput, TOutput>(this IObservable<TInput> source, string expression)
+        public static IObservable<TOutput> Evaluate<TInput, TOutput>(this IObservable<TInput> source, string expression)
         {
-            return CreateExpression<TInput, TOutput>(source, expression, null);
+            return CreateExpression<TInput, TOutput>(source, expression, null)(source);
         }
 
-        public static Func<IObservable<TInput>, IObservable<TOutput>> Evaluate<TInput, TOutput>(this IObservable<TInput> source, string expression, IEnumerable<Function> functions)
+        public static IObservable<TOutput> Evaluate<TInput, TOutput>(this IObservable<TInput> source, string expression, IEnumerable<Function> functions)
         {
-            return CreateExpression<TInput, TOutput>(source, expression, functions);
+            return CreateExpression<TInput, TOutput>(source, expression, functions)(source);
         }
 
         private static Func<IObservable<TInput>, IObservable<TOutput>> CreateExpression<TInput, TOutput>(IObservable<TInput> source, string expression, IEnumerable<Function> functions = null)
@@ -34,7 +34,7 @@ namespace CalcRx
                 parser = new ExpressionParser(functions.ToList());
             }
 
-            var baseExpr = Expression.Parameter(source.GetType());
+            var baseExpr = Expression.Parameter(typeof(IObservable<TInput>));
 
             var exp = parser.BuildExpression(expression, baseExpr);
 

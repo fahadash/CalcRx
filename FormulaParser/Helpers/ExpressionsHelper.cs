@@ -179,6 +179,16 @@ namespace FormulaParser.Helpers
             }
             else if (a.IsNumericType() && b.IsNumericType())
             {
+                var resultType = TypeHelper.GetHigherPrecisionType(a.Type, b.Type);
+                if (a.Type != resultType)
+                {
+                    a = Expression.Convert(a, resultType);
+                }
+                if (b.Type != resultType)
+                {
+                    b = Expression.Convert(b, resultType);
+                }
+
                 return operation(a, b);
             }
 
