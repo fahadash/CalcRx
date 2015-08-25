@@ -1,12 +1,12 @@
 # CalcRx
-Allows you to run runtime text expressions on IObservable&lt;T>
+Allows you to run runtime text expressions on IObservable&lt;T>.
 
-Suppose some scientists are working on some project of monitoring temperatures inside Amazon Rainforest, their temperature probe reports to satellite and all the temperature readings are receiving by a computer running the .NET Program that you are maintaining. You receive the temperature changes through IObservable<double> (a Publish-Subscribe model)
+Suppose some scientists are working on some project of monitoring temperatures inside Amazon Rainforest, their temperature probe reports to satellite and all the temperature readings are received by a computer running the .NET Program that you are maintaining. You receive the temperature changes through IObservable<double> (a Publish-Subscribe model)
 
 ```csharp
 IObservable<double> temperatureInFahrenheit = SomeMethodToGetTemperatureChanges();
 ```
-You are getting temperature in Fahrenheit, but scientists like Celcius better, you have a text field in your application that allows Scientists to write formula f(t) so they can type experessions like the following.
+You are getting temperature in Fahrenheit, but scientists like Celcius better, you have a text field in your application that allows Scientists to write a formula f(t) so they can type experessions like the following.
 
 ``` 
  ( _ - 32 ) * 5/9
@@ -25,7 +25,7 @@ Now suppose you have a observable that gives you back the Stock Trades
 IObservable<Trade> myTrades = SomeWebService.MyTrades();
 ```
 
-Traders that are using your application want to run a certain formula (like ones in Excel) to the Trades or Ticks that are coming in live. A formula such as **SellPrice - BuyPrice**
+Traders that are using your application want to run a certain formula (like ones in Excel) on the Trades or Ticks that are coming in live. A formula such as **SellPrice - BuyPrice**
 
 CalcRx can access properties of objects yielded by observables. So you could do
 
