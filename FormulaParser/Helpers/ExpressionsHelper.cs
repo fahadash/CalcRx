@@ -109,13 +109,45 @@ namespace FormulaParser.Helpers
             {
                 var genA = a.Type.GetFirstObservableGenericType();
                 var genB = b.Type.GetFirstObservableGenericType();
-                var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
+                Expression calleeA = null;
+                Expression calleeB = null;
+                ParameterExpression paramA = null;
+                ParameterExpression paramB = null;
 
-                var paramA = Expression.Parameter(genA);
-                var paramB = Expression.Parameter(genB);
-                
                 Expression valueB = paramB;
                 Expression valueA = paramA;
+
+                if (a is MethodCallExpression && b is MethodCallExpression)
+                {
+                    var componentsA = GetSelectCallComponents(a as MethodCallExpression);
+                    var componentsB = GetSelectCallComponents(b as MethodCallExpression);
+
+                    if (componentsA.CalledOn != null && componentsA.Selector != null
+                        && componentsB.CalledOn != null && componentsB.Selector != null
+                        && componentsA.CalledOn == componentsB.CalledOn)
+                    {
+                        calleeA = componentsA.CalledOn;
+                        valueA = components.Selector;
+                        genA = callee.Type.GetFirstObservableGenericType();
+                        paramA = components.Parameter;
+
+
+                        callee = components.CalledOn;
+                        valueA = components.Selector;
+                        genA = callee.Type.GetFirstObservableGenericType();
+                        paramA = components.Parameter;
+                    }
+
+                }
+
+                if (calleeA == null)
+                {
+
+                }
+
+                var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
+
+
 
                 if (paramB.Type != resultType)
                 {
