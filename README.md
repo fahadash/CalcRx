@@ -1,22 +1,22 @@
 # CalcRx
-Allows you to run runtime text expressions on IObservable&lt;T>
+Allows you to run runtime text expressions on IObservable&lt;T>.
 
-Suppose you have the following observable
+Suppose some scientists are working on some project of monitoring temperatures inside Amazon Rainforest, their temperature probe reports to satellite and all the temperature readings are received by a computer running the .NET Program that you are maintaining. You receive the temperature changes through IObservable<double> (a Publish-Subscribe model)
 
 ```csharp
 IObservable<double> temperatureInFahrenheit = SomeMethodToGetTemperatureChanges();
 ```
-You have have a text field in your user interface that allows them to type expressions like this
+You are getting temperature in Fahrenheit, but scientists like Celcius better, you have a text field in your application that allows Scientists to write a formula f(t) so they can type experessions like the following.
 
 ``` 
  ( _ - 32 ) * 5/9
 ```
-*Underscore _ references the object yielded by input observable.*
+*Underscore _ references the object yielded by input observable. In this case is the temperature values in double*
 
-You want to apply the above expression to an existing observable, you can do this.
+You want to apply the above expression to an existing observable, CalcRx allows you to do the following.
 
 ```csharp
-IObservable<double> temperatureInCelcius = temperatureInFahrenheit.Evalutate<double, double>("( _ - 32 ) * 5/9");
+IObservable<double> temperatureInCelcius = temperatureInFahrenheit.Evaluate<double, double>("( _ - 32 ) * 5/9");
 ```
 
 Now suppose you have a observable that gives you back the Stock Trades
@@ -25,7 +25,7 @@ Now suppose you have a observable that gives you back the Stock Trades
 IObservable<Trade> myTrades = SomeWebService.MyTrades();
 ```
 
-Now your user interface allows users to write Profit calculator like this 'SellPrice - BuyPrice' . (SellPrice and BuyPrice are properties of Trade object).
+Traders that are using your application want to run a certain formula (like ones in Excel) on the Trades or Ticks that are coming in live. A formula such as **SellPrice - BuyPrice**
 
 CalcRx can access properties of objects yielded by observables. So you could do
 
