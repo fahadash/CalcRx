@@ -113,6 +113,19 @@ namespace FormulaParser.Helpers
 
                 var paramA = Expression.Parameter(genA);
                 var paramB = Expression.Parameter(genB);
+                
+                Expression valueB = paramB;
+                Expression valueA = paramA;
+
+                if (paramB.Type != resultType)
+                {
+                    valueB = Expression.Convert(paramB, resultType);
+                }
+
+                if (paramA.Type != resultType)
+                {
+                    valueA = Expression.Convert(paramA, resultType);
+                }
 
                 var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(m => m.Name == "CombineLatest" && m.GetParameters().Count() == 3)
@@ -120,59 +133,103 @@ namespace FormulaParser.Helpers
 
 
                 return Expression.Call(methodInfo,
-                        a, b, Expression.Lambda(operation(paramA, paramB), paramA, paramB));
+                        a, b, Expression.Lambda(operation(valueA, valueB), paramA, paramB));
             }
             if (a.IsNumericObservableType() && b.IsNumericType())
             {
                 var genA = a.Type.GetFirstObservableGenericType();
                 var genB = b.Type;
-                var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
 
-                var paramA = Expression.Parameter(genA);
+                ParameterExpression paramA = null;
+                Expression callee = null;
+                Expression valueA = null;
+
+                if (a is MethodCallExpression)
+                {
+                    var components = GetSelectCallComponents(a as MethodCallExpression);
+
+                    if (components.CalledOn != null && components.Selector != null)
+                    {
+                        callee = components.CalledOn;
+                        valueA = components.Selector;
+                        genA = callee.Type.GetFirstObservableGenericType();
+                    }
+                }
+
+                paramA = Expression.Parameter(genA);
+
+                if (callee == null)
+                {
+                    callee = a;
+                    valueA = paramA;
+                }
+
+                var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
+                
+                if (b.Type != resultType)
+                {
+                    b = Expression.Convert(b, resultType);
+                }
+                
+                if (paramA.Type != resultType)
+                {
+                    valueA = Expression.Convert(valueA, resultType);
+                }
 
                 var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
                  .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
                  .MakeGenericMethod(genA, resultType);
 
 
-                if (b.Type != resultType)
-                {
-                    b = Expression.Convert(b, resultType);
-                }
-
-                Expression valueA = paramA;
-
-                if (paramA.Type != resultType)
-                {
-                    valueA = Expression.Convert(paramA, resultType);
-                }
-
                 return Expression.Call(methodInfo,
-                        a, Expression.Lambda(operation(valueA, b), paramA));
+                        callee, Expression.Lambda(operation(valueA, b), paramA));
             }
             if (a.IsNumericType() && b.IsNumericObservableType())
             {
                 var genA = a.Type;
                 var genB = b.Type.GetFirstObservableGenericType();
+
+                ParameterExpression paramB = null;
+                Expression callee = null;
+                Expression valueB = null;
+
+                if (b is MethodCallExpression)
+                {
+                    var components = GetSelectCallComponents(b as MethodCallExpression);
+
+                    if (components.CalledOn != null && components.Selector != null)
+                    {
+                        callee = components.CalledOn;
+                        valueB = components.Selector;
+                        genB = callee.Type.GetFirstObservableGenericType();
+                    }
+                }
+
+                paramB = Expression.Parameter(genB);
+
+                if (callee == null)
+                {
+                    callee = b;
+                    valueB = paramB;
+                }
+
                 var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
-
-                var paramB = Expression.Parameter(genB);
-
-                var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
-                 .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
-                 .MakeGenericMethod(genB, resultType);
 
                 if (a.Type != resultType)
                 {
                     a = Expression.Convert(a, resultType);
                 }
 
-                Expression valueB = paramB;
 
                 if (paramB.Type != resultType)
                 {
-                    valueB = Expression.Convert(paramB, resultType);
+                    valueB = Expression.Convert(valueB, resultType);
                 }
+
+                var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                 .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
+                 .MakeGenericMethod(genB, resultType);
+
 
                 return Expression.Call(methodInfo,
                         b, Expression.Lambda(operation(a, valueB), paramB));
@@ -195,5 +252,47 @@ namespace FormulaParser.Helpers
             return null;
         }
 
+
+        class FunctionCallComponents
+        {
+            internal string MethodName { get; set; }
+            internal string CalleeFullName { get; set; }
+
+        }
+
+        class SelectCallComponents : FunctionCallComponents
+        {
+            internal Expression CalledOn { get; set; }
+
+            internal Expression Selector { get; set; }
+        }
+
+        private static FunctionCallComponents GetMethodCallComponents(MethodCallExpression call)
+        {
+            return new FunctionCallComponents()
+            {
+                CalleeFullName = call.Method.ReflectedType.FullName,
+                MethodName = call.Method.Name
+            };
+        }
+
+        private static SelectCallComponents GetSelectCallComponents(MethodCallExpression call)
+        {
+            var components = new SelectCallComponents()
+            {
+                CalleeFullName = call.Method.ReflectedType.FullName,
+                MethodName = call.Method.Name
+            };
+
+
+            if (components.CalleeFullName == "System.Reactive.Linq.Observable" 
+                &&  components.MethodName=="Select")
+            {
+                components.CalledOn = call.Arguments[0];
+                components.Selector = (call.Arguments[1] as LambdaExpression).Body;
+            }
+
+            return components;
+        }
     }
 }
