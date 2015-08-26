@@ -153,13 +153,14 @@ namespace FormulaParser.Helpers
                         callee = components.CalledOn;
                         valueA = components.Selector;
                         genA = callee.Type.GetFirstObservableGenericType();
+                        paramA = components.Parameter;
                     }
                 }
 
-                paramA = Expression.Parameter(genA);
-
+                
                 if (callee == null)
                 {
+                    paramA = Expression.Parameter(genA, "a");
                     callee = a;
                     valueA = paramA;
                 }
@@ -171,7 +172,7 @@ namespace FormulaParser.Helpers
                     b = Expression.Convert(b, resultType);
                 }
                 
-                if (paramA.Type != resultType)
+                if (valueA.Type != resultType)
                 {
                     valueA = Expression.Convert(valueA, resultType);
                 }
@@ -202,13 +203,14 @@ namespace FormulaParser.Helpers
                         callee = components.CalledOn;
                         valueB = components.Selector;
                         genB = callee.Type.GetFirstObservableGenericType();
+                        paramB = components.Parameter;
                     }
                 }
 
-                paramB = Expression.Parameter(genB);
 
                 if (callee == null)
                 {
+                    paramB = Expression.Parameter(genB, "b");
                     callee = b;
                     valueB = paramB;
                 }
@@ -221,7 +223,7 @@ namespace FormulaParser.Helpers
                 }
 
 
-                if (paramB.Type != resultType)
+                if (valueB.Type != resultType)
                 {
                     valueB = Expression.Convert(valueB, resultType);
                 }
@@ -232,7 +234,7 @@ namespace FormulaParser.Helpers
 
 
                 return Expression.Call(methodInfo,
-                        b, Expression.Lambda(operation(a, valueB), paramB));
+                        callee, Expression.Lambda(operation(a, valueB), paramB));
             }
             else if (a.IsNumericType() && b.IsNumericType())
             {
@@ -265,6 +267,8 @@ namespace FormulaParser.Helpers
             internal Expression CalledOn { get; set; }
 
             internal Expression Selector { get; set; }
+
+            internal ParameterExpression Parameter { get;set; }
         }
 
         private static FunctionCallComponents GetMethodCallComponents(MethodCallExpression call)
@@ -272,7 +276,7 @@ namespace FormulaParser.Helpers
             return new FunctionCallComponents()
             {
                 CalleeFullName = call.Method.ReflectedType.FullName,
-                MethodName = call.Method.Name
+                MethodName = call.Method.Name,
             };
         }
 
@@ -288,8 +292,11 @@ namespace FormulaParser.Helpers
             if (components.CalleeFullName == "System.Reactive.Linq.Observable" 
                 &&  components.MethodName=="Select")
             {
+                var lambda = (call.Arguments[1] as LambdaExpression);
+
                 components.CalledOn = call.Arguments[0];
-                components.Selector = (call.Arguments[1] as LambdaExpression).Body;
+                components.Selector =lambda.Body;
+                components.Parameter = lambda.Parameters[0];
             }
 
             return components;
