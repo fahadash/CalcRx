@@ -117,37 +117,38 @@ namespace FormulaParser.Helpers
                 Expression valueB = paramB;
                 Expression valueA = paramA;
 
-                if (a is MethodCallExpression && b is MethodCallExpression)
+                var sameCreedResult = AreBinaryObservablesOfSameCreed(a, b);
+
+                if (sameCreedResult.IsSameCreed)
                 {
-                    var componentsA = GetSelectCallComponents(a as MethodCallExpression);
-                    var componentsB = GetSelectCallComponents(b as MethodCallExpression);
+                    var callee = sameCreedResult.Creed;
+                    var selectorA = sameCreedResult.LeftSelector;
+                    var selectorB = sameCreedResult.RightSelector;
 
-                    if (componentsA.CalledOn != null && componentsA.Selector != null
-                        && componentsB.CalledOn != null && componentsB.Selector != null
-                        && componentsA.CalledOn == componentsB.CalledOn)
+                    ReplaceParamInExpressionTree(selectorB, sameCreedResult.RightParameter, sameCreedResult.LeftParameter);
+
+                    var resultTypeSameCreed = TypeHelper.GetHigherPrecisionType(genA, genB);
+
+                    if (selectorA.Type != resultTypeSameCreed)
                     {
-                        calleeA = componentsA.CalledOn;
-                        valueA = components.Selector;
-                        genA = callee.Type.GetFirstObservableGenericType();
-                        paramA = components.Parameter;
-
-
-                        callee = components.CalledOn;
-                        valueA = components.Selector;
-                        genA = callee.Type.GetFirstObservableGenericType();
-                        paramA = components.Parameter;
+                        a = Expression.Convert(a, resultTypeSameCreed);
                     }
 
-                }
+                    if (selectorB.Type != resultTypeSameCreed)
+                    {
+                        valueB = Expression.Convert(valueB, resultTypeSameCreed);
+                    }
 
-                if (calleeA == null)
-                {
+                    var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                     .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
+                     .MakeGenericMethod(genB, resultTypeSameCreed);
 
+
+                    return Expression.Call(methodInfo,
+                            callee, Expression.Lambda(operation(valueA, valueB), sameCreedResult.LeftParameter));
                 }
 
                 var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
-
-
 
                 if (paramB.Type != resultType)
                 {
@@ -159,12 +160,12 @@ namespace FormulaParser.Helpers
                     valueA = Expression.Convert(paramA, resultType);
                 }
 
-                var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                var methodInfoSameCreed = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
             .First(m => m.Name == "CombineLatest" && m.GetParameters().Count() == 3)
             .MakeGenericMethod(genA, genB, resultType);
 
 
-                return Expression.Call(methodInfo,
+                return Expression.Call(methodInfoSameCreed,
                         a, b, Expression.Lambda(operation(valueA, valueB), paramA, paramB));
             }
             if (a.IsNumericObservableType() && b.IsNumericType())
@@ -294,6 +295,20 @@ namespace FormulaParser.Helpers
 
         }
 
+        class BinaryObservablesOfSameCreed
+        {
+            internal bool IsSameCreed { get; set; }
+            internal Expression Creed { get; set; }
+
+            internal Expression LeftSelector { get; set; }
+
+            internal Expression RightSelector { get; set; }
+
+            internal ParameterExpression LeftParameter { get; set; }
+
+            internal ParameterExpression RightParameter { get; set; }
+        }
+
         class SelectCallComponents : FunctionCallComponents
         {
             internal Expression CalledOn { get; set; }
@@ -332,6 +347,78 @@ namespace FormulaParser.Helpers
             }
 
             return components;
+        }
+
+        private static BinaryObservablesOfSameCreed AreBinaryObservablesOfSameCreed(Expression left, Expression right)
+        {
+            Expression leftCreed = null;
+            Expression rightCreed = null;
+            Expression leftSelector = null;
+            Expression rightSelector = null;
+            Expression creed = null;
+
+            var result = new BinaryObservablesOfSameCreed();
+
+            if (left is MethodCallExpression)
+            {
+                var leftCall = GetSelectCallComponents(left as MethodCallExpression);
+
+                leftCreed = leftCall.CalledOn;
+                leftSelector = leftCall.Selector;
+                result.LeftParameter = leftCall.Parameter;
+            }
+            else
+            {
+                result.IsSameCreed = false;
+
+                leftCreed = left;
+                leftSelector = left;
+            }
+
+            if (right is MethodCallExpression)
+            {
+                var rightCall = GetSelectCallComponents(right as MethodCallExpression);
+
+                rightCreed = rightCall.CalledOn;
+                rightSelector = rightCall.Selector;
+                result.RightParameter = rightCall.Parameter;
+            }
+            else
+            {
+                result.IsSameCreed = false;
+                rightCreed = right;
+                rightSelector = right;
+            }
+
+            if (leftCreed == rightCreed && leftCreed != null)
+            {
+                result.IsSameCreed = true;
+                result.Creed = leftCreed;
+                result.LeftSelector = leftSelector;
+                result.RightSelector = rightSelector;
+            }
+
+            return result;
+        }
+
+        internal static Expression ReplaceParamInExpressionTree(Expression param, ParameterExpression expressionToReplace, ParameterExpression replaceWith)
+        {
+            if (param is BinaryExpression)
+            {
+                var exp = param as BinaryExpression;
+
+                exp.binary
+                ReplaceParamInExpressionTree(exp.Left, expressionToReplace, replaceWith);
+                ReplaceParamInExpressionTree(exp.Right, expressionToReplace, replaceWith);
+            }
+            else if (param is UnaryExpression)
+            {
+                var exp = param as UnaryExpression;
+                if (exp.Operand == expressionToReplace)
+                {
+                    exp.Operand = replaceWith;
+                }
+            }
         }
     }
 }
