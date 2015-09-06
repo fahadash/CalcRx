@@ -13,6 +13,29 @@ namespace FormulaParser.Helpers
     {
         internal static List<Function> functions;
 
+        private static Queue<string> leftParameterNames = new Queue<string>();
+        private static Queue<string> rightParameterNames = new Queue<string>();
+
+        static ExpressionsHelper()
+        {
+            var aNames = Enumerable.Range(0, 100)
+                .Select(n => "a" + n.ToString());
+
+            foreach (var item in aNames)
+            {
+                leftParameterNames.Enqueue(item);
+            }
+
+            
+            var bNames = Enumerable.Range(0, 100)
+                .Select(n => "a" + n.ToString());
+
+            foreach (var item in bNames)
+            {
+                rightParameterNames.Enqueue(item);
+            }
+        }
+
         internal static Expression FunctionCall(string functionName, IEnumerable<Expression> args)
         {
             var argList = args.ToList();
@@ -124,28 +147,57 @@ namespace FormulaParser.Helpers
                     var callee = sameCreedResult.Creed;
                     var selectorA = sameCreedResult.LeftSelector;
                     var selectorB = sameCreedResult.RightSelector;
-
-                    ReplaceParamInExpressionTree(selectorB, sameCreedResult.RightParameter, sameCreedResult.LeftParameter);
-
+                    
                     var resultTypeSameCreed = TypeHelper.GetHigherPrecisionType(genA, genB);
+                    valueA = selectorA;
+                    valueB = selectorB;
 
-                    if (selectorA.Type != resultTypeSameCreed)
+                    if (sameCreedResult.LeftParameter != null && sameCreedResult.RightParameter != null)
                     {
-                        a = Expression.Convert(a, resultTypeSameCreed);
+                        selectorB = ReplaceParamInExpressionTree(selectorB, sameCreedResult.RightParameter, sameCreedResult.LeftParameter);
+                        valueB = selectorB;
+                        paramA = sameCreedResult.LeftParameter;
+                    }
+                    else if (sameCreedResult.LeftParameter == null)
+                    {
+                        paramA = sameCreedResult.RightParameter;
+                        valueA = paramA;
+                        selectorA = paramA; // ReplaceParamInExpressionTree(selectorA, sameCreedResult.LtParameter, sameCreedResult.LeftParameter);
+                    }
+                    else if (sameCreedResult.RightParameter == null)
+                    {// ReplaceParamInExpressionTree(selectorB, sameCreedResult.RightParameter, sameCreedResult.LeftParameter);
+                        paramA = sameCreedResult.LeftParameter;
+                        valueB = paramA;
+                        selectorB = paramA; 
+                    }
+                    else
+                    {
+                        paramA  = Expression.Parameter(resultTypeSameCreed);
+                        valueA = paramA;
+                        valueB = paramA;
+                        selectorA = paramA;
+                        selectorB = paramB;
                     }
 
-                    if (selectorB.Type != resultTypeSameCreed)
+                    resultTypeSameCreed = TypeHelper.GetHigherPrecisionType(valueA.Type, valueB.Type);
+
+                    if (valueA.Type != resultTypeSameCreed)
+                    {
+                        valueA = Expression.Convert(valueA, resultTypeSameCreed);
+                    }
+
+                    if (valueB.Type != resultTypeSameCreed)
                     {
                         valueB = Expression.Convert(valueB, resultTypeSameCreed);
                     }
 
                     var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
                      .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
-                     .MakeGenericMethod(genB, resultTypeSameCreed);
+                     .MakeGenericMethod(paramA.Type, resultTypeSameCreed);
 
 
                     return Expression.Call(methodInfo,
-                            callee, Expression.Lambda(operation(valueA, valueB), sameCreedResult.LeftParameter));
+                            callee, Expression.Lambda(operation(valueA, valueB), paramA));
                 }
 
                 var resultType = TypeHelper.GetHigherPrecisionType(genA, genB);
@@ -193,7 +245,7 @@ namespace FormulaParser.Helpers
                 
                 if (callee == null)
                 {
-                    paramA = Expression.Parameter(genA, "a");
+                    paramA = Expression.Parameter(genA, leftParameterNames.Dequeue());
                     callee = a;
                     valueA = paramA;
                 }
@@ -243,7 +295,7 @@ namespace FormulaParser.Helpers
 
                 if (callee == null)
                 {
-                    paramB = Expression.Parameter(genB, "b");
+                    paramB = Expression.Parameter(genB, rightParameterNames.Dequeue());
                     callee = b;
                     valueB = paramB;
                 }
@@ -407,18 +459,67 @@ namespace FormulaParser.Helpers
             {
                 var exp = param as BinaryExpression;
 
-                exp.binary
-                ReplaceParamInExpressionTree(exp.Left, expressionToReplace, replaceWith);
-                ReplaceParamInExpressionTree(exp.Right, expressionToReplace, replaceWith);
+                Func<Expression, Expression, Expression> operation = null;
+
+                if (exp.NodeType == ExpressionType.Add)
+                {
+                    operation = Expression.Add;
+                }
+                else if (exp.NodeType == ExpressionType.Subtract)
+                {
+                    operation = Expression.Subtract;
+                }
+                else if (exp.NodeType == ExpressionType.Multiply)
+                {
+                    operation = Expression.Multiply;
+                }
+                else if (exp.NodeType == ExpressionType.Divide)
+                {
+                    operation = Expression.Divide;
+                }
+                else if (exp.NodeType == ExpressionType.Power)
+                {
+                    operation = Expression.Power;
+                }
+                else if (exp.NodeType == ExpressionType.Modulo)
+                {
+                    operation = Expression.Modulo;
+                }
+                else
+                {
+                    throw new ArgumentException("I don't know what is " + exp.NodeType);
+                }
+
+                return operation(
+                    ReplaceParamInExpressionTree(exp.Left, expressionToReplace, replaceWith),
+                ReplaceParamInExpressionTree(exp.Right, expressionToReplace, replaceWith));
+                
             }
             else if (param is UnaryExpression)
             {
                 var exp = param as UnaryExpression;
-                if (exp.Operand == expressionToReplace)
+                if (exp.NodeType == ExpressionType.Convert)
                 {
-                    exp.Operand = replaceWith;
+                    var type = exp.Type;
+                    return Expression.Convert(
+                        ReplaceParamInExpressionTree(exp.Operand, expressionToReplace, replaceWith),
+                        type);
                 }
             }
+            else if (param is ParameterExpression)
+            {
+                if (param == expressionToReplace)
+                {
+                    return replaceWith;
+                }
+            }
+            else if (param is ConstantExpression)
+            {
+                return param;
+            }
+
+
+            return param;
         }
     }
 }
