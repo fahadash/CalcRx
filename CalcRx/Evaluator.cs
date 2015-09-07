@@ -34,7 +34,7 @@ namespace CalcRx
                 parser = new ExpressionParser(functions.ToList());
             }
 
-            var baseExpr = Expression.Parameter(typeof(IObservable<TInput>));
+            var baseExpr = Expression.Parameter(typeof(IObservable<TInput>), "__main");
 
             var exp = parser.BuildExpression(expression, baseExpr);
 

@@ -77,6 +77,7 @@
     <Otherwise />
   </Choose>
   <ItemGroup>
+    <Compile Include="BeHardOnMe.cs" />
     <Compile Include="CalcRxTest.cs" />
     <Compile Include="Contracts\Tick.cs" />
     <Compile Include="ExpressionParserTests.cs" />
