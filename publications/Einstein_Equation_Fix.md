@@ -50,7 +50,7 @@ Now the first step would be to generate the Expression for `3 * _` which would g
 __main.Select(a0 => 3 * a0);
 ```
 
-Perfect so far right? Now the system has to combine a `_ +`, the new fix would rip the Expression, remove `3 * a0` which is the selector out, then generate new expression and a new Select call [Expression][4]. Imagine how crazy would it be if your expression involve 20 binary operations? The troubles don't end there consider the following expression
+Perfect so far right? Now the system has to combine a `_ +`, the new fix would rip the Expression, remove `3 * a0` which is the selector out, then generate new expression and a new Select call [Expression][expression_call]. Imagine how crazy would it be if your expression involve 20 binary operations? The troubles don't end there consider the following expression
 
 ```
 (_ + 1) * (_ - 1)
