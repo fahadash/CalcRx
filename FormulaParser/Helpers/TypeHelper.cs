@@ -100,5 +100,18 @@ namespace FormulaParser.Helpers
 
             return type.GetGenericArguments().Count();
         }
+
+        internal static bool IsNumericObservableType(this Type type)
+        {
+            if (type.IsInterface && type.Name == "IObservable`1" && type.GenericTypeArguments.First().IsNumericType())
+            {
+                return true;
+            }
+
+            var observableInterfaces = type.GetInterfaces();
+
+            return observableInterfaces
+                        .Any(i => i.Name == "IObservable`1" && i.GenericTypeArguments.Length == 1 && i.GenericTypeArguments.First().IsNumericType());
+        }
     }
 }

@@ -14,5 +14,7 @@ namespace FormulaParser
         public Expression FunctionExpression { get; set; }
 
         public List<Expression> Parameters { get; set; }
+
+        public Type ReturnType { get; set; }
     }
 }
