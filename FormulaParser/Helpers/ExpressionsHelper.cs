@@ -38,17 +38,55 @@ namespace FormulaParser.Helpers
 
         internal static Expression FunctionCall(string functionName, IEnumerable<Expression> args)
         {
-            var argList = args.ToList();
-            var name = string.Format("{0}({1})", functionName, argList.Count);
+            var function = FunctionHelper.SeekFunction(functionName, args.ToArray());
 
-            var function = functions.Where(f => f.FunctionName.Equals(name)).First();
+            var innerFunction = FunctionHelper.SeekFunction(functionName, args.ToArray(), true);
 
+            if (innerFunction != null && args.Count() == 1 && args.First().IsNumericObservableType())
+            {
+
+                var arg = args.First();
+                if (arg is MethodCallExpression)
+                {
+                    var select = GetSelectCallComponents(arg as MethodCallExpression);
+                    if (select != null)
+                    {
+
+                        var innerMethod = innerFunction.FunctionExpression.Type.GetMethod("Invoke");
+                        var inner = Expression.Call(innerFunction.FunctionExpression, innerMethod, select.Selector);
+
+                        var rebuildSelectInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                             .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
+                             .MakeGenericMethod(select.CalledOn.Type.GetFirstObservableGenericType(), innerFunction.ReturnType);
+
+
+                        return Expression.Call(rebuildSelectInfo,
+                                select.CalledOn, Expression.Lambda(inner, select.Parameter));
+                    }
+                }
+                else if (innerFunction.ReturnType.IsNumericObservableType() == false)
+                {
+                    var returnType = function.ReturnType.GetFirstObservableGenericType();
+                    if (returnType == null)
+                    {
+                        returnType = innerFunction.ReturnType;
+                    }
+                    var innerMethod = innerFunction.FunctionExpression.Type.GetMethod("Invoke");
+                    var inner = Expression.Call(innerFunction.FunctionExpression, innerMethod, arg);
+
+                    var methodInfo = typeof(Observable).GetMethods(BindingFlags.Static | BindingFlags.Public)
+                         .First(m => m.Name == "Select" && m.GetParameters().Count() == 2)
+                         .MakeGenericMethod(arg.Type.GetFirstObservableGenericType(), returnType);
+
+                    return Expression.Call(methodInfo,
+                            arg, Expression.Lambda(inner, Expression.Parameter(arg.Type.GetFirstObservableGenericType(), "a")));
+                }
+
+            }
 
             var method = function.FunctionExpression.Type.GetMethod("Invoke");
             var exp = Expression.Call(function.FunctionExpression, method, args);
-
-            //var exp = Expression.Lambda(function.FunctionExpression, args.OfType<ParameterExpression>());
-
+            
             return exp;
         }
 
@@ -517,7 +555,16 @@ namespace FormulaParser.Helpers
             {
                 return param;
             }
+            else if (param is MethodCallExpression)
+            {
+                var exp = param as MethodCallExpression;
 
+                var pars = exp.Arguments
+                                .Select(a => ReplaceParamInExpressionTree(a, expressionToReplace, replaceWith))
+                                .ToArray();
+
+                return Expression.Call(exp.Object, exp.Method, pars);
+            }
 
             return param;
         }

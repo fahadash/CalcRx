@@ -42,6 +42,8 @@ namespace FormulaParser
                                             .Select(a => Expression.Parameter(a))
                                             .OfType<Expression>()
                                             .ToList();
+                    func.ReturnType = type.GetGenericArguments()
+                                            .Last();
                     func.FunctionExpression = functionExpression;
 
                     return func;
