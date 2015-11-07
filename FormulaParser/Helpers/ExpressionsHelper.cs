@@ -97,7 +97,7 @@ namespace FormulaParser.Helpers
             if (exp.IsObservableType())
             {
                 var gen = exp.Type.GetFirstObservableGenericType();
-                var param = Expression.Parameter(gen);
+                var param = Expression.Parameter(gen, "a");
 
                 var property = gen.GetProperties()
                                     .Where(p => p.Name.Equals(name))
@@ -564,6 +564,21 @@ namespace FormulaParser.Helpers
                                 .ToArray();
 
                 return Expression.Call(exp.Object, exp.Method, pars);
+            }
+            else if (param is MemberExpression && (param as MemberExpression).Member.MemberType == MemberTypes.Property)
+            {
+                var exp = param as MemberExpression;
+
+                var member = exp.Member;
+
+                if (exp.Expression == expressionToReplace)
+                {
+                    return Expression.Property(replaceWith, member.Name);
+                }
+                else
+                {
+                    return param;
+                }
             }
 
             return param;

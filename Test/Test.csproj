@@ -79,6 +79,7 @@
   <ItemGroup>
     <Compile Include="BeHardOnMe.cs" />
     <Compile Include="CalcRxTest.cs" />
+    <Compile Include="ComplexPropertyTest.cs" />
     <Compile Include="Contracts\Tick.cs" />
     <Compile Include="ExpressionParserTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
