@@ -1,7 +1,7 @@
 # CalcRx
 Allows you to run runtime text expressions on IObservable&lt;T>.
 
-Suppose some scientists are working on some project of monitoring temperatures inside Amazon Rainforest, their temperature probe reports to satellite and all the temperature readings are received by a computer running the .NET Program that you are maintaining. You receive the temperature changes through IObservable<double> (a Publish-Subscribe model)
+Suppose a few scientists are working on a project of monitoring temperatures inside Amazon Rainforest, their temperature probe reports to satellite and all the temperature readings are received by a computer running the .NET Program that you are maintaining. You receive the temperature changes through IObservable<double> (a Publish-Subscribe model)
 
 ```csharp
 IObservable<double> temperatureInFahrenheit = SomeMethodToGetTemperatureChanges();
